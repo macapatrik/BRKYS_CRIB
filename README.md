@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BRKYS CRIB — rezervační systém barbershopu
 
-## Getting Started
+Web s online rezervacemi pro barbershop: ceník, výběr služby a termínu, rušení rezervací kódem a chráněná administrace termínů.
 
-First, run the development server:
+## Spuštění
 
 ```bash
+npm install
+cp .env.example .env.local   # doplň hodnoty
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Web běží na [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stránky
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Cesta | Popis |
+| --- | --- |
+| `/` | Úvodní stránka s ceníkem |
+| `/rezervace` | Rezervační formulář (služba → termín → kontakt), po odeslání vrátí kód `BRK-XXXXXX` |
+| `/zrusit` | Zrušení rezervace pomocí kódu a důvodu |
+| `/admin` | Správa termínů a přehled rezervací — chráněno heslem `ADMIN_PASSWORD` |
 
-## Learn More
+## Konfigurace (`.env.local`)
 
-To learn more about Next.js, take a look at the following resources:
+- `ADMIN_PASSWORD` — heslo do administrace (bez něj je `/admin` nedostupný)
+- `RESEND_API_KEY`, `RESEND_FROM`, `BARBER_EMAIL` — e-mailové notifikace přes [Resend](https://resend.com); bez klíče se e-maily jen logují do konzole
+- `APP_URL` — veřejná URL webu, používá se v odkazech v e-mailech
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Při rezervaci i zrušení dostane e-mail barber (`BARBER_EMAIL`) i zákazník (potvrzení s kódem).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Rezervace a termíny se ukládají do JSON souborů v `data/` (`slots.json`, `bookings.json`). Pro malý provoz to stačí; při nasazení na serverless platformu (Vercel apod.) je potřeba vyměnit `lib/db.ts` za skutečnou databázi, protože souborový systém tam není trvalý.

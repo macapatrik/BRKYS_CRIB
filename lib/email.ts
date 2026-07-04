@@ -36,7 +36,17 @@ async function send(to: string, subject: string, html: string) {
     return;
   }
   try {
-    await resend.emails.send({ from: FROM, to, subject, html });
+    const { data, error } = await resend.emails.send({
+      from: FROM,
+      to,
+      subject,
+      html,
+    });
+    if (error) {
+      console.error(`[email] Chyba odeslání „${subject}“ → ${to}:`, error);
+    } else {
+      console.log(`[email] Odesláno „${subject}“ → ${to} (id: ${data?.id})`);
+    }
   } catch (err) {
     console.error("[email] Odeslání selhalo:", err);
   }

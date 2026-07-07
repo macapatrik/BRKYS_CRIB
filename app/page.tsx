@@ -39,15 +39,17 @@ export default function Home() {
           </h2>
           <ul className="divide-y divide-border/60">
             {SERVICES.map((s) => (
-              <li
-                key={s.id}
-                className="flex items-baseline justify-between gap-4 py-4"
-              >
-                <span className="text-lg text-fg">{s.label}</span>
-                <span className="flex-1 border-b border-dashed border-border/60" />
-                <span className="font-display text-2xl tracking-wide text-accent">
-                  {s.price} Kč
-                </span>
+              <li key={s.id} className="py-4">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-lg text-fg">{s.label}</span>
+                  <span className="flex-1 border-b border-dashed border-border/60" />
+                  <span className="font-display text-2xl tracking-wide text-accent">
+                    {s.price} Kč
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-muted">
+                  {s.description} · {s.duration} min
+                </p>
               </li>
             ))}
           </ul>

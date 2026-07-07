@@ -107,7 +107,7 @@ export default function BookingForm() {
           {SERVICES.map((s) => (
             <label
               key={s.id}
-              className={`flex cursor-pointer items-center justify-between rounded-xl border px-4 py-3 transition-colors ${
+              className={`flex cursor-pointer items-start justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
                 service === s.id
                   ? "border-accent bg-accent/10"
                   : "border-border bg-surface hover:border-muted"
@@ -123,9 +123,12 @@ export default function BookingForm() {
                   className="sr-only"
                 />
                 <span className="block text-fg">{s.label}</span>
+                <span className="mt-0.5 block text-xs text-muted">
+                  {s.description}
+                </span>
                 <span className="text-xs text-muted">{s.duration} min</span>
               </span>
-              <span className="font-display text-xl tracking-wide text-accent">
+              <span className="whitespace-nowrap font-display text-xl tracking-wide text-accent">
                 {s.price} Kč
               </span>
             </label>

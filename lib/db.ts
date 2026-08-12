@@ -49,6 +49,11 @@ const bookingCols = sql`
   status, cancel_reason, created_at::text as created_at, cancelled_at::text as cancelled_at
 `;
 
+// Lehký dotaz — drží Supabase (free tier) v aktivním stavu, ať neusne po nečinnosti.
+export async function pingDb(): Promise<void> {
+  await sql`select 1`;
+}
+
 // ---- Slots ----
 
 export async function getSlots(): Promise<Slot[]> {

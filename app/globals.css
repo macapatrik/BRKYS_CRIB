@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0a0a0b;
-  --color-surface: #121214;
-  --color-elevated: #1a1a1d;
-  --color-border: #2a2a2e;
-  --color-fg: #f5f5f4;
-  --color-muted: #9a9a9f;
-  --color-accent: #c8a35b;
-  --color-accent-fg: #14110a;
+  --color-bg: #0a0a0a;
+  --color-surface: #131313;
+  --color-elevated: #1c1c1c;
+  --color-border: #2b2b2b;
+  --color-fg: #fafafa;
+  --color-muted: #8a8a8a;
+  --color-accent: #c6f24e;
+  --color-accent-fg: #0a0a0a;
 
-  --font-display: var(--font-bebas);
+  --font-display: var(--font-anton);
   --font-sans: var(--font-inter);
 }
 
@@ -26,9 +26,49 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Jemný filmový grain přes celou stránku — dodá „street" texturu */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 ::selection {
   background: var(--color-accent);
   color: var(--color-accent-fg);
 }
 
-/* jemný šum/grain pro prémiový pocit by se dal přidat později */
+/* Neonový glow pro klíčové akcenty */
+.glow {
+  text-shadow:
+    0 0 18px color-mix(in srgb, var(--color-accent) 55%, transparent),
+    0 0 40px color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.glow-box {
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--color-accent) 45%, transparent),
+    0 0 4px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+/* Nekonečně jedoucí pásek */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 22s linear infinite;
+}
+
+/* Display font je verzálkový a hutný — trocha vzduchu mu prospěje */
+.font-display {
+  letter-spacing: 0.01em;
+}

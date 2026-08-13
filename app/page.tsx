@@ -3,15 +3,6 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { SERVICES } from "@/lib/services";
 
-const MARQUEE = [
-  "FRESH FADE",
-  "SKIN FADE",
-  "BEARD TRIM",
-  "LINE UP",
-  "BRKYS CRIB",
-  "WALK-IN? RADŠI REZERVUJ",
-];
-
 export default function Home() {
   return (
     <>
@@ -53,25 +44,6 @@ export default function Home() {
             >
               Rezervovat termín →
             </Link>
-          </div>
-        </section>
-
-        {/* Běžící pásek */}
-        <section className="border-y border-border bg-accent py-3 overflow-hidden">
-          <div className="marquee-track flex w-max whitespace-nowrap">
-            {[0, 1].map((rep) => (
-              <div key={rep} className="flex items-center" aria-hidden={rep === 1}>
-                {MARQUEE.map((word) => (
-                  <span
-                    key={word}
-                    className="mx-6 font-display text-xl tracking-wide text-accent-fg"
-                  >
-                    {word}
-                    <span className="ml-6 text-accent-fg/40">✦</span>
-                  </span>
-                ))}
-              </div>
-            ))}
           </div>
         </section>
 

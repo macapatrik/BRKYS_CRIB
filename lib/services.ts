@@ -10,28 +10,28 @@ export const SERVICES: Service[] = [
   {
     id: "strih",
     label: "Střih",
-    price: 450,
+    price: 400,
     duration: 45,
     description: "konzultace · vlastní střih · finální styling",
   },
   {
     id: "detsky-strih",
     label: "Dětský střih (5–13 let)",
-    price: 350,
+    price: 300,
     duration: 45,
     description: "konzultace · vlastní střih · finální styling",
   },
   {
     id: "vousy",
     label: "Úprava vousů / holení",
-    price: 650,
+    price: 300,
     duration: 45,
     description: "konzultace · úprava vousů / holení · finální styling",
   },
   {
     id: "komplet",
     label: "Komplet",
-    price: 900,
+    price: 600,
     duration: 75,
     description:
       "konzultace · vlastní střih · úprava vousů / holení · finální styling",

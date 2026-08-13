@@ -55,19 +55,6 @@ body::after {
     0 0 4px color-mix(in srgb, var(--color-accent) 60%, transparent);
 }
 
-/* Nekonečně jedoucí pásek */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-.marquee-track {
-  animation: marquee 22s linear infinite;
-}
-
 /* Display font je verzálkový a hutný — trocha vzduchu mu prospěje */
 .font-display {
   letter-spacing: 0.01em;

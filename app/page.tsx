@@ -11,30 +11,31 @@ export default function Home() {
       <main className="flex-1">
         {/* Ceník */}
         <section className="mx-auto max-w-3xl px-6 py-24">
-          <div className="mb-10 flex items-end justify-between">
+          <div className="mb-10">
             <h2 className="font-display text-5xl tracking-wide sm:text-6xl">
               CENÍK
             </h2>
-            <span className="pb-1 text-xs font-bold uppercase tracking-[0.25em] text-accent">
-              Co to dá
-            </span>
           </div>
           <ul className="space-y-3">
             {SERVICES.map((s) => (
-              <li
-                key={s.id}
-                className="group flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface px-6 py-5 transition-colors hover:border-accent"
-              >
-                <div>
-                  <p className="text-lg font-semibold text-fg">{s.label}</p>
-                  <p className="mt-1 text-sm text-muted">
-                    {s.description} · {s.duration} min
-                  </p>
-                </div>
-                <span className="shrink-0 font-display text-3xl tracking-wide text-accent transition-transform group-hover:scale-110">
-                  {s.price}
-                  <span className="ml-1 text-base text-muted">Kč</span>
-                </span>
+              <li key={s.id}>
+                <Link
+                  href={`/rezervace?service=${s.id}`}
+                  className="group flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface px-6 py-5 transition-all hover:border-accent hover:bg-accent/[0.06] active:scale-[0.98]"
+                >
+                  <div>
+                    <p className="text-lg font-semibold text-fg transition-colors group-hover:text-accent">
+                      {s.label}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">
+                      {s.description} · {s.duration} min
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-display text-3xl tracking-wide text-accent transition-transform group-hover:scale-110">
+                    {s.price}
+                    <span className="ml-1 text-base text-muted">Kč</span>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

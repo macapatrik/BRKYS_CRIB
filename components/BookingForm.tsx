@@ -33,6 +33,14 @@ export default function BookingForm() {
     loadSlots();
   }, []);
 
+  // Předvybrat službu podle ?service= z URL (odkaz z ceníku)
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get("service");
+    if (wanted && SERVICES.some((s) => s.id === wanted)) {
+      setService(wanted);
+    }
+  }, []);
+
   const grouped = useMemo(() => {
     const map = new Map<string, Slot[]>();
     for (const s of slots) {

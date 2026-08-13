@@ -20,90 +20,41 @@ html {
 }
 
 body {
-  background: var(--color-bg);
+  background: transparent;
   color: var(--color-fg);
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Živý filmový grain přes celou stránku — jemný flicker, „street" textura */
+/* Jemný statický grain přes celou stránku — „street" textura */
 body::after {
   content: "";
   position: fixed;
-  inset: -50%;
+  inset: 0;
   z-index: 100;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.04;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  animation: grain 0.5s steps(5) infinite;
 }
 
-/* CRT scanlines + pomalý světelný sken přes stránku */
-body::before {
-  content: "";
+/* Rozmazané foto na pozadí — jen mobil (foto je na výšku). Na PC zůstává čistá černá. */
+.bg-photo {
   position: fixed;
   inset: 0;
-  z-index: 99;
-  pointer-events: none;
+  z-index: -1;
+  display: none;
   background-image:
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 2px,
-      rgba(255, 255, 255, 0.025) 3px
-    ),
-    linear-gradient(
-      to bottom,
-      transparent,
-      color-mix(in srgb, var(--color-accent) 7%, transparent),
-      transparent
-    );
-  background-size:
-    100% 3px,
-    100% 220px;
-  background-repeat: repeat, no-repeat;
-  animation: scan 7s linear infinite;
+    linear-gradient(rgba(10, 10, 10, 0.55), rgba(10, 10, 10, 0.8)),
+    url("/bg.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: blur(6px);
+  transform: scale(1.08); /* schová rozmazané okraje */
 }
 
-@keyframes grain {
-  0% {
-    transform: translate(0, 0);
-  }
-  20% {
-    transform: translate(-3%, 2%);
-  }
-  40% {
-    transform: translate(2%, -4%);
-  }
-  60% {
-    transform: translate(-2%, 3%);
-  }
-  80% {
-    transform: translate(3%, 1%);
-  }
-  100% {
-    transform: translate(0, 0);
-  }
-}
-
-@keyframes scan {
-  0% {
-    background-position:
-      0 0,
-      0 -25%;
-  }
-  100% {
-    background-position:
-      0 3px,
-      0 125%;
-  }
-}
-
-/* Respekt k uživatelům s omezeným pohybem */
-@media (prefers-reduced-motion: reduce) {
-  body::after,
-  body::before {
-    animation: none;
+@media (max-width: 767px) {
+  .bg-photo {
+    display: block;
   }
 }
 

@@ -26,7 +26,10 @@ export default function RootLayout({
       lang="cs"
       className={`${inter.variable} ${anton.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-bg text-fg">{children}</body>
+      <body className="min-h-full flex flex-col text-fg">
+        <div className="bg-photo" aria-hidden />
+        {children}
+      </body>
     </html>
   );
 }

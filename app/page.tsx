@@ -9,44 +9,6 @@ export default function Home() {
       <SiteHeader />
 
       <main className="flex-1">
-        {/* Hero */}
-        <section className="relative overflow-hidden">
-          {/* neonová záře */}
-          <div className="pointer-events-none absolute -top-40 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-accent/20 blur-[120px]" />
-          {/* rastr v pozadí */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.15]"
-            style={{
-              backgroundImage:
-                "linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px)",
-              backgroundSize: "44px 44px",
-              maskImage:
-                "radial-gradient(circle at 50% 30%, black, transparent 70%)",
-            }}
-          />
-
-          <div className="relative mx-auto max-w-5xl px-6 pt-24 pb-20 text-center sm:pt-32">
-            <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-accent">
-              <span className="h-2 w-2 rounded-full bg-accent glow-box" />
-              Barber Shop
-            </p>
-            <h1 className="mt-8 font-display text-7xl leading-[0.85] tracking-wide sm:text-[10rem]">
-              <span className="block">BRKYS</span>
-              <span className="block text-accent glow">CRIB</span>
-            </h1>
-            <p className="mx-auto mt-8 max-w-md text-lg text-muted">
-              Ostrý střih, čistý fade a poctivá péče o vousy. Vyber si termín
-              online — <span className="text-fg">rychle a bez volání.</span>
-            </p>
-            <Link
-              href="/rezervace"
-              className="mt-10 inline-flex items-center gap-2 rounded-full bg-accent px-9 py-4 text-base font-extrabold uppercase tracking-wide text-accent-fg transition-transform hover:scale-105 glow-box"
-            >
-              Rezervovat termín →
-            </Link>
-          </div>
-        </section>
-
         {/* Ceník */}
         <section className="mx-auto max-w-3xl px-6 py-24">
           <div className="mb-10 flex items-end justify-between">

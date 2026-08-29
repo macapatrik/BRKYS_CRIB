@@ -15,3 +15,10 @@ export function formatDateTime(date: string, time: string): string {
     minute: "2-digit",
   });
 }
+
+// Normalizace telefonu pro párování stejného klienta napříč rezervacemi:
+// necháme jen číslice a bereme posledních 9 (české číslo bez předvolby/mezer).
+export function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  return digits.length > 9 ? digits.slice(-9) : digits;
+}

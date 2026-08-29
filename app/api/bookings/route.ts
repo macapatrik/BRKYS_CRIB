@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createBooking, getBookings } from "@/lib/db";
+import { createBooking, getBookings, getOutstandingPenalties } from "@/lib/db";
 import { notifyNewBooking } from "@/lib/email";
 import { serviceById } from "@/lib/services";
 import { isAdmin } from "@/lib/auth";
@@ -43,8 +43,12 @@ export async function POST(request: Request) {
       service,
     });
 
-    await notifyNewBooking(booking);
-    return NextResponse.json({ booking }, { status: 201 });
+    // Nevyrovnané pokuty klienta (dle telefonu) — připomeneme klientovi i barberovi.
+    const outstanding = await getOutstandingPenalties(booking.phone);
+    const penaltyDue = outstanding.reduce((sum, p) => sum + p.amount, 0);
+
+    await notifyNewBooking(booking, penaltyDue);
+    return NextResponse.json({ booking, penaltyDue }, { status: 201 });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Chyba." },

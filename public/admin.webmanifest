@@ -1,0 +1,15 @@
+{
+  "name": "BRKYS Admin",
+  "short_name": "Admin",
+  "description": "Správa rezervací — BRKYS CRIB.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3eee5",
+  "theme_color": "#f3eee5",
+  "lang": "cs",
+  "icons": [
+    { "src": "/admin/apple-icon", "type": "image/png", "sizes": "180x180" },
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ]
+}

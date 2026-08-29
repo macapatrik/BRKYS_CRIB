@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #0a0a0a;
-  --color-surface: #131313;
-  --color-elevated: #1c1c1c;
-  --color-border: #2b2b2b;
-  --color-fg: #fafafa;
-  --color-muted: #8a8a8a;
-  --color-accent: #c6f24e;
-  --color-accent-fg: #0a0a0a;
+  --color-bg: #f3eee5;
+  --color-surface: #f8f4ec;
+  --color-elevated: #fdfbf6;
+  --color-border: #ddd5c6;
+  --color-fg: #17191a;
+  --color-muted: #7b756b;
+  --color-accent: #17191a;
+  --color-accent-fg: #f3eee5;
 
-  --font-display: var(--font-anton);
+  --font-display: var(--font-playfair);
   --font-sans: var(--font-inter);
 }
 
 html {
   background: var(--color-bg);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -26,25 +26,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Jemný statický grain přes celou stránku — „street" textura */
+/* Jemný statický grain přes celou stránku — textura papíru */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 100;
   pointer-events: none;
-  opacity: 0.04;
+  opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Rozmazané foto na pozadí — jen mobil (foto je na výšku). Na PC zůstává čistá černá. */
+/* Rozmazané foto na pozadí — jen mobil (foto je na výšku). Na PC zůstává čistý papír. */
 .bg-photo {
   position: fixed;
   inset: 0;
   z-index: -1;
   display: none;
   background-image:
-    linear-gradient(rgba(10, 10, 10, 0.55), rgba(10, 10, 10, 0.8)),
+    linear-gradient(rgba(243, 238, 229, 0.93), rgba(243, 238, 229, 0.97)),
     url("/bg.jpg");
   background-size: cover;
   background-position: center;
@@ -61,22 +61,4 @@ body::after {
 ::selection {
   background: var(--color-accent);
   color: var(--color-accent-fg);
-}
-
-/* Neonový glow pro klíčové akcenty */
-.glow {
-  text-shadow:
-    0 0 18px color-mix(in srgb, var(--color-accent) 55%, transparent),
-    0 0 40px color-mix(in srgb, var(--color-accent) 25%, transparent);
-}
-
-.glow-box {
-  box-shadow:
-    0 0 24px color-mix(in srgb, var(--color-accent) 45%, transparent),
-    0 0 4px color-mix(in srgb, var(--color-accent) 60%, transparent);
-}
-
-/* Display font je verzálkový a hutný — trocha vzduchu mu prospěje */
-.font-display {
-  letter-spacing: 0.01em;
 }

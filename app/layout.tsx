@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Inter, Anton } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -7,15 +7,36 @@ const inter = Inter({
   subsets: ["latin", "latin-ext"],
 });
 
-const anton = Anton({
-  variable: "--font-anton",
-  weight: "400",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  weight: ["400", "500", "600"],
   subsets: ["latin", "latin-ext"],
 });
 
+const description =
+  "Objednej se online do barber shopu BRKYS CRIB. Střihy, úprava vousů a holení — rychlá rezervace termínu.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://brkyscrib.cz"),
   title: "BRKYS CRIB — Barber Shop",
-  description: "Rezervační systém barber shopu BRKYS CRIB.",
+  description,
+  openGraph: {
+    title: "BRKYS CRIB — Barber Shop",
+    description,
+    url: "https://brkyscrib.cz",
+    siteName: "BRKYS CRIB",
+    locale: "cs_CZ",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BRKYS CRIB — Barber Shop",
+    description,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#f3eee5",
 };
 
 export default function RootLayout({
@@ -24,7 +45,7 @@ export default function RootLayout({
   return (
     <html
       lang="cs"
-      className={`${inter.variable} ${anton.variable} h-full antialiased`}
+      className={`${inter.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col text-fg">
         <div className="bg-photo" aria-hidden />

@@ -9,6 +9,7 @@ export default function CancelForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [penalty, setPenalty] = useState<number | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,6 +23,7 @@ export default function CancelForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Zrušení se nezdařilo.");
+      setPenalty(data.penalty ?? null);
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chyba.");
@@ -39,6 +41,12 @@ export default function CancelForm() {
         <p className="mt-4 text-muted">
           Termín jsme uvolnili. Děkujeme, že jsi dal{" "}vědět.
         </p>
+        {penalty ? (
+          <p className="mx-auto mt-5 max-w-sm rounded-xl border border-red-800/25 bg-red-800/[0.06] px-4 py-3 text-sm text-red-800">
+            ⚠️ Rušíš míň než 24 h před termínem — k tvému příštímu střihu proto
+            připočteme pokutu <strong>{penalty} Kč</strong>.
+          </p>
+        ) : null}
         <Link
           href="/rezervace"
           className="mt-6 inline-block text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
@@ -69,7 +77,7 @@ export default function CancelForm() {
         required
       />
       {error && (
-        <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <p className="rounded-lg border border-red-800/25 bg-red-800/[0.06] px-4 py-3 text-sm text-red-800">
           {error}
         </p>
       )}

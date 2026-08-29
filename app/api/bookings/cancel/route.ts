@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cancelBooking } from "@/lib/db";
 import { notifyCancellation } from "@/lib/email";
+import { isAdmin } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -11,12 +12,16 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const booking = await cancelBooking(
+    // Barber ruší z adminu → klienta nepokutujeme. Klient ruší sám →
+    // pokuta při pozdním zrušení (do 24 h před termínem).
+    const applyPenalty = !(await isAdmin());
+    const { booking, penalty } = await cancelBooking(
       String(id).trim().toUpperCase(),
       String(reason).trim(),
+      applyPenalty,
     );
-    await notifyCancellation(booking);
-    return NextResponse.json({ booking });
+    await notifyCancellation(booking, penalty);
+    return NextResponse.json({ booking, penalty });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Chyba." },

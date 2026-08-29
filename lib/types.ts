@@ -21,3 +21,12 @@ export type Booking = {
   createdAt: string;
   cancelledAt?: string;
 };
+
+export type Penalty = {
+  id: string;
+  phone: string; // normalizovaný telefon klienta (jen číslice)
+  amount: number; // Kč
+  bookingId?: string; // rezervace, jejíž pozdní zrušení pokutu způsobilo
+  reason?: string;
+  createdAt: string;
+};

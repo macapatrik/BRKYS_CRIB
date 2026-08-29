@@ -8,6 +8,7 @@ import type { Slot, Booking } from "@/lib/types";
 
 export default function BookingForm() {
   const [slots, setSlots] = useState<Slot[]>([]);
+  const [services, setServices] = useState(SERVICES);
   const [loading, setLoading] = useState(true);
   const [service, setService] = useState(SERVICES[0].id);
   const [slotId, setSlotId] = useState<string>("");
@@ -17,6 +18,7 @@ export default function BookingForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Booking | null>(null);
+  const [penaltyDue, setPenaltyDue] = useState(0);
 
   async function loadSlots() {
     setLoading(true);
@@ -31,6 +33,13 @@ export default function BookingForm() {
 
   useEffect(() => {
     loadSlots();
+    // aktuální ceny z DB (fallback na výchozí z kódu)
+    fetch("/api/services", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.services) && d.services.length) setServices(d.services);
+      })
+      .catch(() => {});
   }, []);
 
   // Předvybrat službu podle ?service= z URL (odkaz z ceníku)
@@ -66,6 +75,7 @@ export default function BookingForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Rezervace se nezdařila.");
+      setPenaltyDue(data.penaltyDue ?? 0);
       setDone(data.booking);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Chyba.");
@@ -78,7 +88,7 @@ export default function BookingForm() {
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-accent/40 bg-surface p-8 text-center">
+      <div className="rounded-2xl border border-accent bg-elevated p-8 text-center">
         <p className="text-sm uppercase tracking-widest text-accent">
           Rezervace potvrzena
         </p>
@@ -91,6 +101,13 @@ export default function BookingForm() {
         <p className="mt-6 text-fg">
           {formatDay(done.date)} v {done.time}
         </p>
+        {penaltyDue > 0 ? (
+          <p className="mx-auto mt-6 max-w-sm rounded-xl border border-red-800/25 bg-red-800/[0.06] px-4 py-3 text-sm text-red-800">
+            ⚠️ Z minulého pozdního zrušení ti zbývá pokuta{" "}
+            <strong>{penaltyDue} Kč</strong> — připočteme ji k tomuto střihu
+            (platba na místě).
+          </p>
+        ) : null}
         <Link
           href="/zrusit"
           className="mt-8 inline-block text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
@@ -112,12 +129,12 @@ export default function BookingForm() {
           1 · Vyber službu
         </legend>
         <div className="grid gap-3 sm:grid-cols-2">
-          {SERVICES.map((s) => (
+          {services.map((s) => (
             <label
               key={s.id}
               className={`flex cursor-pointer items-start justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
                 service === s.id
-                  ? "border-accent bg-accent/10"
+                  ? "border-accent bg-elevated ring-1 ring-accent"
                   : "border-border bg-surface hover:border-muted"
               }`}
             >
@@ -217,7 +234,7 @@ export default function BookingForm() {
       </fieldset>
 
       {error && (
-        <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <p className="rounded-lg border border-red-800/25 bg-red-800/[0.06] px-4 py-3 text-sm text-red-800">
           {error}
         </p>
       )}

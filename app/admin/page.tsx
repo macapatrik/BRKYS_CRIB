@@ -1,8 +1,19 @@
+import type { Metadata } from "next";
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminLogin from "@/components/AdminLogin";
 import { isAdmin } from "@/lib/auth";
 
-export const metadata = { title: "Správa — BRKYS CRIB" };
+// Admin má vlastní manifest (start_url: /admin) → po „Přidat na plochu"
+// naskočí rovnou správa jako samostatná appka, ne homepage.
+export const metadata: Metadata = {
+  title: "Správa — BRKYS CRIB",
+  manifest: "/admin.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "BRKYS Admin",
+    statusBarStyle: "default",
+  },
+};
 
 export default async function AdminPage() {
   const authed = await isAdmin();

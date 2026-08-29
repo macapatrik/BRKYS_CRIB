@@ -1,6 +1,12 @@
 import postgres from "postgres";
 import crypto from "crypto";
-import type { Booking, Slot } from "./types";
+import type { Booking, Penalty, Slot } from "./types";
+import { SERVICES, type Service } from "./services";
+import { normalizePhone } from "./format";
+
+// Pokuta za pozdní zrušení a hranice „pozdního" zrušení.
+export const PENALTY_AMOUNT = 200; // Kč
+const PENALTY_WINDOW_HOURS = 24;
 
 if (!process.env.DATABASE_URL) {
   throw new Error("Chybí DATABASE_URL v prostředí.");
@@ -92,6 +98,50 @@ export async function removeSlot(id: string): Promise<void> {
   await sql`delete from slots where id = ${id}`;
 }
 
+// Hromadné vložení termínů (týdenní šablona). Duplicitní (date,time) se přeskočí.
+// Vrací počet skutečně přidaných termínů.
+export async function addSlotsBulk(
+  items: { date: string; time: string }[],
+): Promise<number> {
+  if (!items.length) return 0;
+  const rows = await sql`
+    insert into slots ${sql(items, "date", "time")}
+    on conflict (date, time) do nothing
+    returning id
+  `;
+  return (rows as unknown as unknown[]).length;
+}
+
+// ---- Ceny služeb ----
+
+// Přepisy cen z DB (jen ty, co se liší od výchozích v kódu).
+export async function getServicePrices(): Promise<Record<string, number>> {
+  const rows = (await sql`
+    select service_id, price from service_prices
+  `) as unknown as { service_id: string; price: number }[];
+  const map: Record<string, number> = {};
+  for (const r of rows) map[r.service_id] = r.price;
+  return map;
+}
+
+// Služby z kódu s aktuálními cenami z DB.
+export async function getServices(): Promise<Service[]> {
+  const prices = await getServicePrices();
+  return SERVICES.map((s) =>
+    prices[s.id] != null ? { ...s, price: prices[s.id] } : s,
+  );
+}
+
+export async function setServicePrice(
+  id: string,
+  price: number,
+): Promise<void> {
+  await sql`
+    insert into service_prices (service_id, price) values (${id}, ${price})
+    on conflict (service_id) do update set price = ${price}
+  `;
+}
+
 // ---- Bookings ----
 
 export async function getBookings(): Promise<Booking[]> {
@@ -146,13 +196,40 @@ export async function createBooking(input: {
   });
 }
 
+// Rezervace, kterým se má poslat připomínka: potvrzené, zatím bez připomínky,
+// termín je v budoucnu a do 32 h. Okno > 24 h zajistí, že denní cron chytí
+// každý termín aspoň jednou (den předem).
+export async function getDueReminders(): Promise<Booking[]> {
+  const rows = await sql`
+    select ${bookingCols} from bookings
+    where status = 'confirmed'
+      and reminder_sent_at is null
+      and (date + time::time) > (now() at time zone 'Europe/Prague')
+      and (date + time::time) <= (now() at time zone 'Europe/Prague') + interval '32 hours'
+    order by date, time
+  `;
+  return (rows as unknown as BookingRow[]).map(toBooking);
+}
+
+export async function markReminderSent(id: string): Promise<void> {
+  await sql`update bookings set reminder_sent_at = now() where id = ${id}`;
+}
+
+// applyPenalty = true jen když ruší sám klient. Když je termín do 24 h,
+// zapíše se pokuta. Barber ruší z adminu s applyPenalty = false (nepokutujeme).
+// Vrací i výši případné pokuty (null = žádná).
 export async function cancelBooking(
   id: string,
   reason: string,
-): Promise<Booking> {
+  applyPenalty = false,
+): Promise<{ booking: Booking; penalty: number | null }> {
   return await sql.begin(async (tx) => {
     const [existing] = await tx`
-      select slot_id, status from bookings where id = ${id}
+      select slot_id, status, phone,
+        (date + time::time) <
+          (now() at time zone 'Europe/Prague')
+            + make_interval(hours => ${PENALTY_WINDOW_HOURS}) as late
+      from bookings where id = ${id}
     `;
     if (!existing) throw new Error("Rezervace nenalezena.");
     if (existing.status === "cancelled")
@@ -166,6 +243,69 @@ export async function cancelBooking(
     `;
     // uvolnit slot zpět
     await tx`update slots set available = true where id = ${existing.slot_id}`;
-    return toBooking(row as unknown as BookingRow);
+
+    let penalty: number | null = null;
+    if (applyPenalty && existing.late) {
+      await tx`
+        insert into penalties (phone, amount, booking_id, reason)
+        values (${normalizePhone(existing.phone)}, ${PENALTY_AMOUNT}, ${id},
+                ${`Pozdní zrušení ${id}`})
+      `;
+      penalty = PENALTY_AMOUNT;
+    }
+    return { booking: toBooking(row as unknown as BookingRow), penalty };
   });
+}
+
+// ---- Pokuty ----
+
+type PenaltyRow = {
+  id: string;
+  phone: string;
+  amount: number;
+  booking_id: string | null;
+  reason: string | null;
+  created_at: string;
+};
+
+function toPenalty(r: PenaltyRow): Penalty {
+  return {
+    id: r.id,
+    phone: r.phone,
+    amount: r.amount,
+    bookingId: r.booking_id ?? undefined,
+    reason: r.reason ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+const penaltyCols = sql`
+  id, phone, amount, booking_id, reason, created_at::text as created_at
+`;
+
+// Nevyrovnané pokuty konkrétního klienta (dle telefonu).
+export async function getOutstandingPenalties(
+  phone: string,
+): Promise<Penalty[]> {
+  const rows = await sql`
+    select ${penaltyCols} from penalties
+    where phone = ${normalizePhone(phone)} and settled_at is null
+    order by created_at
+  `;
+  return (rows as unknown as PenaltyRow[]).map(toPenalty);
+}
+
+// Všechny nevyrovnané pokuty — pro admin.
+export async function getOutstandingPenaltiesAll(): Promise<Penalty[]> {
+  const rows = await sql`
+    select ${penaltyCols} from penalties
+    where settled_at is null
+    order by created_at desc
+  `;
+  return (rows as unknown as PenaltyRow[]).map(toPenalty);
+}
+
+// Barber vybral pokutu v hotovosti → označit za vyrovnané.
+export async function settlePenalty(id: string): Promise<void> {
+  await sql`update penalties set settled_at = now() where id = ${id}`;
 }

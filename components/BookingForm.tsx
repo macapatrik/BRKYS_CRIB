@@ -81,10 +81,6 @@ function CutoffCountdown() {
           {pad(hh)}:{pad(mm)}:{pad(ss)}
         </p>
       </div>
-      <p className="mt-1 text-xs text-muted">
-        Termíny bereme vždy den dopředu — na každý den se rezervace zavírají
-        v předvečer ve {CUTOFF_HOUR}:00.
-      </p>
     </div>
   );
 }

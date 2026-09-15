@@ -76,8 +76,8 @@ export default function AdminDashboard() {
 
   async function savePrice(id: string) {
     const value = Number(priceEdits[id]);
-    if (!Number.isInteger(value) || value < 0) {
-      setError("Cena musí být celé číslo ≥ 0.");
+    if (!Number.isInteger(value) || value < 1) {
+      setError("Cena musí být celé číslo ≥ 1 Kč.");
       return;
     }
     const res = await fetch("/api/services", {
@@ -550,7 +550,7 @@ export default function AdminDashboard() {
             const changed = current !== String(s.price);
             const invalid =
               current.trim() === "" || !Number.isInteger(Number(current)) ||
-              Number(current) < 0;
+              Number(current) < 1;
             return (
               <div
                 key={s.id}
@@ -560,7 +560,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    min={0}
+                    min={1}
                     inputMode="numeric"
                     value={current}
                     onChange={(e) => {

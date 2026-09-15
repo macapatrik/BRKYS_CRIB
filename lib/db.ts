@@ -8,6 +8,11 @@ import { normalizePhone } from "./format";
 export const PENALTY_AMOUNT = 200; // Kč
 const PENALTY_WINDOW_HOURS = 24;
 
+// Rezervace na daný den se uzavírají večer předem v tuto hodinu (Europe/Prague).
+// Barber tak má další den jistý a nikdo nenabookuje na poslední chvíli
+// (tím pádem jsou i všechny dnešní termíny už zavřené).
+const BOOKING_CUTOFF_HOUR = 22;
+
 if (!process.env.DATABASE_URL) {
   throw new Error("Chybí DATABASE_URL v prostředí.");
 }
@@ -17,6 +22,15 @@ const sql = postgres(process.env.DATABASE_URL, {
   ssl: "require",
   prepare: false,
 });
+
+// Termín jde rezervovat, dokud nenastala uzávěrka (BOOKING_CUTOFF_HOUR dne
+// předem). Uzávěrka = půlnoc dne termínu − (24 − hodina uzávěrky), tj. pro 22:00
+// je to půlnoc − 2 h. Sdílíme mezi výpisem slotů i samotnou rezervací, ať se
+// pravidlo nerozejde.
+const bookingOpen = sql`
+  (date::timestamp - make_interval(hours => ${24 - BOOKING_CUTOFF_HOUR}))
+    > (now() at time zone 'Europe/Prague')
+`;
 
 type BookingRow = {
   id: string;
@@ -73,8 +87,7 @@ export async function getAvailableSlots(): Promise<Slot[]> {
   return (await sql`
     select id, date::text as date, time, available
     from slots
-    where available
-      and (date + time::time) > (now() at time zone 'Europe/Prague')
+    where available and ${bookingOpen}
     order by date, time
   `) as unknown as Slot[];
 }
@@ -127,9 +140,12 @@ export async function getServicePrices(): Promise<Record<string, number>> {
 // Služby z kódu s aktuálními cenami z DB.
 export async function getServices(): Promise<Service[]> {
   const prices = await getServicePrices();
-  return SERVICES.map((s) =>
-    prices[s.id] != null ? { ...s, price: prices[s.id] } : s,
-  );
+  // Přepis z DB použijeme jen když je to platná kladná cena; jinak (chybí,
+  // nebo je omylem 0) padáme na výchozí cenu z kódu, ať web nikdy neukáže „0 Kč".
+  return SERVICES.map((s) => {
+    const p = prices[s.id];
+    return p != null && p > 0 ? { ...s, price: p } : s;
+  });
 }
 
 export async function setServicePrice(
@@ -175,15 +191,20 @@ export async function createBooking(input: {
   service: string;
 }): Promise<Booking> {
   return await sql.begin(async (tx) => {
-    // atomicky obsadit slot — ochrana proti dvojité rezervaci
+    // atomicky obsadit slot — ochrana proti dvojité rezervaci a proti rezervaci
+    // po uzávěrce (kdyby klient odeslal starý formulář těsně po 22:00)
     const [slot] = await tx`
       update slots set available = false
-      where id = ${input.slotId} and available = true
+      where id = ${input.slotId} and available = true and ${bookingOpen}
       returning id, date::text as date, time
     `;
     if (!slot) {
-      const [exists] = await tx`select 1 from slots where id = ${input.slotId}`;
-      throw new Error(exists ? "Termín už je obsazený." : "Termín neexistuje.");
+      const [existing] = await tx`
+        select available from slots where id = ${input.slotId}
+      `;
+      if (!existing) throw new Error("Termín neexistuje.");
+      if (!existing.available) throw new Error("Termín už je obsazený.");
+      throw new Error("Rezervace na tento termín už je uzavřená.");
     }
 
     const [row] = await tx`

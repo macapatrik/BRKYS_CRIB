@@ -6,6 +6,89 @@ import { SERVICES } from "@/lib/services";
 import { formatDay } from "@/lib/format";
 import type { Slot, Booking } from "@/lib/types";
 
+// Hodina uzávěrky — musí sedět s BOOKING_CUTOFF_HOUR v lib/db.ts (server je
+// serverovský modul, nejde importovat do klienta, tak konstantu držíme tady).
+const CUTOFF_HOUR = 22;
+
+// Aktuální čas v Europe/Prague rozložený na složky (klient může být v jiné TZ).
+function pragueParts(d: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Prague",
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(d);
+  const g = (t: string) => Number(parts.find((p) => p.type === t)!.value);
+  return {
+    y: g("year"),
+    mo: g("month"),
+    d: g("day"),
+    h: g("hour"),
+    mi: g("minute"),
+    s: g("second"),
+  };
+}
+
+// Kolik sekund zbývá do nejbližší uzávěrky (22:00 Praha) a který den se tím
+// zavírá. Dnešní 22:00 zavírá zítřek; po 22:00 už zavíráme pozítří.
+function computeCutoff(): { remaining: number; closingIso: string } {
+  const p = pragueParts(new Date());
+  const secsNow = p.h * 3600 + p.mi * 60 + p.s;
+  const target = CUTOFF_HOUR * 3600;
+  const beforeCutoff = secsNow < target;
+  const remaining = beforeCutoff ? target - secsNow : target - secsNow + 86400;
+  const addDays = beforeCutoff ? 1 : 2; // zavíraný den vůči pražskému dnešku
+  const base = new Date(Date.UTC(p.y, p.mo - 1, p.d + addDays, 12, 0, 0));
+  const closingIso = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Prague",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(base); // "YYYY-MM-DD"
+  return { remaining, closingIso };
+}
+
+function CutoffCountdown() {
+  const [state, setState] = useState<ReturnType<typeof computeCutoff> | null>(
+    null,
+  );
+  // Čas je čistě klientský — na serveru i při první hydrataci vrátíme null,
+  // takže nevznikne hydration mismatch.
+  useEffect(() => {
+    const tick = () => setState(computeCutoff());
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+  if (!state) return null;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const hh = Math.floor(state.remaining / 3600);
+  const mm = Math.floor((state.remaining % 3600) / 60);
+  const ss = state.remaining % 60;
+  return (
+    <div className="mb-4 rounded-xl border border-accent/30 bg-elevated px-4 py-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <p className="text-sm text-fg">
+          Rezervace na{" "}
+          <span className="capitalize">{formatDay(state.closingIso)}</span>{" "}
+          zavíráme za
+        </p>
+        <p className="font-display text-2xl tracking-widest text-accent tabular-nums">
+          {pad(hh)}:{pad(mm)}:{pad(ss)}
+        </p>
+      </div>
+      <p className="mt-1 text-xs text-muted">
+        Termíny bereme vždy den dopředu — na každý den se rezervace zavírají
+        v předvečer ve {CUTOFF_HOUR}:00.
+      </p>
+    </div>
+  );
+}
+
 export default function BookingForm() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [services, setServices] = useState(SERVICES);
@@ -166,6 +249,7 @@ export default function BookingForm() {
         <legend className="mb-4 text-sm uppercase tracking-widest text-muted">
           2 · Vyber termín
         </legend>
+        <CutoffCountdown />
         {loading ? (
           <p className="text-muted">Načítám volné termíny…</p>
         ) : grouped.length === 0 ? (

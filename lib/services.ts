@@ -25,7 +25,7 @@ export const SERVICES: Service[] = [
     id: "komplet",
     label: "Komplet",
     price: 600,
-    duration: 80,
+    duration: 75,
     description:
       "konzultace · vlastní střih · úprava vousů / holení · finální styling",
   },

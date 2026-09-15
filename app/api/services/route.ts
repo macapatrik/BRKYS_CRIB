@@ -20,9 +20,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Neznámá služba." }, { status: 400 });
     }
     const value = Number(price);
-    if (!Number.isInteger(value) || value < 0) {
+    if (!Number.isInteger(value) || value < 1) {
       return NextResponse.json(
-        { error: "Cena musí být celé číslo ≥ 0." },
+        { error: "Cena musí být celé číslo ≥ 1 Kč." },
         { status: 400 },
       );
     }
